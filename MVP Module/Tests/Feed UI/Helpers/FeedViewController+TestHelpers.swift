@@ -83,6 +83,18 @@ extension FeedViewController {
 
 		refreshControl = spyRefreshControl
 	}
+
+	var errorMessage: String? {
+		errorView?.message
+	}
+
+	func simulateTapOnError() {
+		errorView.button.simulateTap()
+	}
+
+	func errorViewIsVisible() -> Bool {
+		errorView.alpha != 0
+	}
 }
 
 private class UIRefreshControlSpy: UIRefreshControl {

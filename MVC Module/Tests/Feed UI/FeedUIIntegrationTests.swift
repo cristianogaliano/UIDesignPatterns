@@ -321,14 +321,14 @@ final class FeedUIIntegrationTests: XCTestCase {
 		let (sut, loader) = makeSUT()
 		let refreshUI = { sut.simulateUserInitiatedFeedReload() }
 
-		testErrorViewDisappears(with: sut, and: loader, when: refreshUI, file: #file, line: #line)
+		testErrorViewDisappears_and_DisplayedMessageIsCorrect(with: sut, and: loader, when: refreshUI, file: #file, line: #line)
 	}
 
 	func test_errorView_disappearsWhenTappedIn() {
 		let (sut, loader) = makeSUT()
-		let tappedIn = { sut.refreshController!.errorView!.button.simulateTap() }
+		let tappedIn = { sut.simulateTapOnErrorMessage()  }
 
-		testErrorViewDisappears(with: sut, and: loader, when: tappedIn, file: #file, line: #line)
+		testErrorViewDisappears_and_DisplayedMessageIsCorrect(with: sut, and: loader, when: tappedIn, file: #file, line: #line)
 	}
 
 	// MARK: - Helpers
@@ -349,27 +349,26 @@ final class FeedUIIntegrationTests: XCTestCase {
 		return UIImage.make(withColor: .red).pngData()!
 	}
 
-	private func testErrorViewDisappears(with sut: FeedViewController, and loader: LoaderSpy, when action: () -> Void, file: StaticString = #filePath, line: UInt = #line) {
+	private func testErrorViewDisappears_and_DisplayedMessageIsCorrect(with sut: FeedViewController, and loader: LoaderSpy, when action: () -> Void, file: StaticString = #filePath, line: UInt = #line) {
 		sut.simulateAppearance()
+		XCTAssertEqual(sut.errorMessage, nil, "Error message expected to be nil and not visible", file: file, line: line)
 		XCTAssertFalse(sut.errorViewIsVisible(), "ErrorView expected to be not visible", file: file, line: line)
 
 		loader.completeFeedLoadingWithError()
+		XCTAssertEqual(sut.errorMessage, localized("FEED_VIEW_CONNECTION_ERROR"), "Error message expected to be connection error, got \(String(describing: sut.errorMessage)) instead", file: file, line: line)
 		XCTAssertTrue(sut.errorViewIsVisible(), "ErrorView expected to be visible when failed to load", file: file, line: line)
 
 		action()
+		XCTAssertEqual(sut.errorMessage, nil, "Error message expected to be nil and not visible", file: file, line: line)
 		XCTAssertFalse(sut.errorViewIsVisible(), "ErrorView expected to disappear when the tested action is performed", file: file, line: line)
 
 		loader.completeFeedLoading(with: [makeImage()])
+		XCTAssertEqual(sut.errorMessage, nil, "Error message expected to be nil and not visible", file: file, line: line)
 		XCTAssertFalse(sut.errorViewIsVisible(), "ErrorView expected to disappear when completing successfully", file: file, line: line)
 
 		sut.simulateUserInitiatedFeedReload()
 		loader.completeFeedLoadingWithError()
+		XCTAssertEqual(sut.errorMessage, localized("FEED_VIEW_CONNECTION_ERROR"), "Error message expected to be connection error, got \(String(describing: sut.errorMessage)) instead", file: file, line: line)
 		XCTAssertTrue(sut.errorViewIsVisible(), "ErrorView expected to be visible again when failed to load", file: file, line: line)
-	}
-}
-
-private extension FeedViewController {
-	func errorViewIsVisible() -> Bool {
-		refreshController?.errorView?.alpha != 0
 	}
 }
